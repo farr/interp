@@ -7,6 +7,7 @@ OBJS = sample.o rng_init.o ../denest.o
 
 uniform2d: sample.h $(OBJS)
 linear_peak: sample.h $(OBJS)
+small_strip: sample.h $(OBJS)
 
 .PHONY: clean
 clean:
