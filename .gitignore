@@ -1,0 +1,5 @@
+*.o
+*.dat
+*~
+linear_peak
+uniform2d
