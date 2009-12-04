@@ -12,4 +12,5 @@ small_strip: sample.h $(OBJS)
 .PHONY: clean
 clean:
 	rm -rf *.o
-	rm uniform2d
+	rm -rf *.dat
+	rm uniform2d linear_peak small_strip
