@@ -5,12 +5,13 @@ LFLAGS += -L$(GSL_PREFIX)/lib -lgslcblas -lgsl
 
 OBJS = sample.o rng_init.o ../denest.o
 
-uniform2d: sample.h $(OBJS)
-linear_peak: sample.h $(OBJS)
-small_strip: sample.h $(OBJS)
+CHECK_PROGS = uniform2d linear_peak small_strip
+
+$(CHECK_PROGS): sample.h $(OBJS)
 
 .PHONY: clean
 clean:
-	rm -rf *.o
-	rm -rf *.dat
-	rm uniform2d linear_peak small_strip
+	rm -f *.o
+	rm -f ../denest.o
+	rm -f *.dat
+	rm -f $(CHECK_PROGS)
