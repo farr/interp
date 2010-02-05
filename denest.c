@@ -344,15 +344,11 @@ tree *make_density_tree(size_t ndim, size_t npts, double **pts, double *lower_le
   tree *tree;
 
   for (i = 0; i < npts; i++) {
-    my_pts[i] = malloc(ndim*sizeof(double));
-    memcpy(my_pts[i], pts[i], ndim*sizeof(double));
+    my_pts[i] = pts[i];
   }
 
   tree = do_make_density_tree(ndim, npts, my_pts, lower_left, upper_right);
 
-  for (i = 0; i < npts; i++) {
-    free(my_pts[i]);
-  }
   free(my_pts);
 
   return tree;
