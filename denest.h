@@ -76,11 +76,9 @@ typedef double (*uniform_random)(void *data);
    boundary of the domain is a box in R^n bounded below by lower_left,
    and above by upper_right. 
 
-   The array pts will be disordered by this procedure.
-
    The procedure will make its own copies of the lower_left and
    upper_right arrays, so these may be freed or altered upon return
-   arbitrarily.  */
+   arbitrarily.  Similarly with the pts array. */
 tree *make_density_tree(size_t ndim, size_t npts, double **pts, double *lower_left, 
                         double *upper_right);
 
@@ -95,5 +93,14 @@ void free_density_tree(tree *t);
    it will contain the coordinates of the sample point. */
 void sample_density(size_t ndim, size_t npts, double **pts, tree *tree, 
                     uniform_random rng, void *rng_data, double *output_pt);
+
+/* Integrate a function over a rectangular region in parameter space.
+   The function is sampled at the given points, where it takes values
+   in the array fs. */
+double integrate_samples(size_t ndim, size_t npts, double **pts, 
+                         double *fs, tree *t);
+
+/* Volume of a cell. */
+double tree_volume(tree *t);
 
 #endif /* __DENEST_H__ */

@@ -1,7 +1,7 @@
 #include"rng_init.h"
 #include<stdio.h>
 
-void rng_init(gsl_rng *rng) {
+gsl_rng *rng_init(gsl_rng *rng) {
   FILE *devrandom = fopen("/dev/random", "r");
   unsigned long int seed;
 
@@ -10,4 +10,6 @@ void rng_init(gsl_rng *rng) {
   gsl_rng_set(rng, seed);
 
   fclose(devrandom);
+
+  return rng;
 }

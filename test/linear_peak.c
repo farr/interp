@@ -31,7 +31,7 @@ static double *get_sample(gsl_rng *rng) {
 
 int main() {
   static const int NPDFSAMP = 10000;
-  static const int NSAMP = 1000;
+  static const int NSAMP = 100000;
   int i;
   double **samps = do_sample(NPDFSAMP, NSAMP, get_sample);
   

@@ -3,6 +3,6 @@
 
 #include<gsl/gsl_rng.h>
 
-void rng_init(gsl_rng *rng);
+gsl_rng *rng_init(gsl_rng *rng);
 
 #endif /* __RNG_INIT_H__ */
