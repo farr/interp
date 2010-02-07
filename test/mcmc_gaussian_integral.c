@@ -74,15 +74,17 @@ static void bounds_of_coords(size_t ndim, size_t npts, double **pts,
 
 int main() {
   const size_t ndim = 3;
-  const size_t nsamp = 1000000;
+  const size_t nsamp = 10000000;
+  const size_t resample_factor = 10000;
+  const size_t ncoord = nsamp/resample_factor;
   const double box_width = 10.0; /* In units of sigma. */
   const double epsrel = 1e-1;
   double mu[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   double sigma[] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
   gsl_rng *rng = rng_init(gsl_rng_alloc(gsl_rng_ranlxd2));
   sample **samples;
-  double **coords = malloc(nsamp*sizeof(double *));
-  double *likes = malloc(nsamp*sizeof(double));
+  double **coords = malloc(ncoord*sizeof(double *));
+  double *likes = malloc(ncoord*sizeof(double));
   tree *t;
   double lower_left[ndim], upper_right[ndim];
   size_t i;
@@ -107,16 +109,16 @@ int main() {
                  (log_posterior_fn *) log_likelihood, &ldata,
                  free);
 
-  for (i = 0; i < nsamp; i++) {
-    coords[i] = samples[i]->params;
-    likes[i] = exp(samples[i]->log_posterior);
+  for (i = 0; i < ncoord; i++) {
+    coords[i] = samples[i*resample_factor]->params;
+    likes[i] = exp(samples[i*resample_factor]->log_posterior);
   }
 
-  bounds_of_coords(ndim, nsamp, coords, lower_left, upper_right);
+  bounds_of_coords(ndim, ncoord, coords, lower_left, upper_right);
 
-  t = make_density_tree(ndim, nsamp, coords, lower_left, upper_right);
+  t = make_density_tree(ndim, ncoord, coords, lower_left, upper_right);
 
-  I = integrate_samples(ndim, nsamp, coords, likes, t);
+  I = integrate_samples(ndim, ncoord, coords, likes, t);
 
   if (fabs(I - 1.0) < epsrel) {
     fprintf(stderr, "Success!\n");
@@ -126,8 +128,8 @@ int main() {
     success = 0;
   }
   
-  for (i = 0; i < nsamp; i++) {
-    printf("%g %g\n", coords[i][0], coords[i][1]);
+  for (i = 0; i < ncoord; i++) {
+    printf("%g %g %g\n", coords[i][0], coords[i][1], likes[i]);
   }
 
   samples_free(samples, nsamp, free);
