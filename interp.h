@@ -1,11 +1,14 @@
-/* denest: Density estimation from a discrete set of samples.  Written
-   3 Dec 2009 by Will M. Farr <w-farr@northwestern.edu>. 
+/* interp: Density estimation from a discrete set of samples.  Written
+   3 Dec 2009 by Will M. Farr <w-farr@northwestern.edu>.  Modified
+   April 2010 by Will M. Farr <w-farr@northwestern.edu>.
 
    Given a set of points in arbitrary dimension, this code subdivides
    the domain of the points recursively into cells such that each cell
-   contains exactly one point.  It does this by cutting the domain
-   along its longest dimension such that (approximately) half the
-   points lie in each of the two resulting cells.  
+   contains exactly one point (or many copies of the same point, such
+   as the repeated samples that might come out of an MCMC).  It does
+   this by cutting the domain along its longest dimension such that
+   (approximately) half the points lie in each of the two resulting
+   cells.
 
    Note that the code assumes that the domain is topologically R^n; if
    there are, e.g., angular coordinates that wrap then there will be
@@ -25,13 +28,13 @@
    PDF.  This is done by first choosing (uniformly) a random sample
    point, then finding the cell that contains only this sample point,
    and finally drawing an output point uniformly in this cell.  This
-   corresponds to drawing from a piecewise-constant interpolation of
-   the PDF represented by the sample points.
+   corresponds to drawing from a piecewise-constant-in-cell
+   interpolation of the PDF represented by the sample points.
 
 */
 
-/*  denest.h: Density estimation from discrete samples. 
-    Copyright (C) 2009 Will M. Farr <w-farr@northwestern.edu>
+/*  denest.h: Density estimation from discrete samples.  
+    Copyright (C) 2009-2010 Will M. Farr <w-farr@northwestern.edu>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,20 +50,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 
-#ifndef __DENEST_H__
-#define __DENEST_H__
+#ifndef __INTERP_H__
+#define __INTERP_H__
 
 #include<string.h>
 
 /* The tree datastructure we use for computing the density. */
 struct cell_struct {
   size_t ndim;
+  size_t npts; /* The number of repeated points in this cell. */
   double *lower_left; /* ndim coordinates of lower left of box. */
   double *upper_right; /* ndim coordinates of upper right corner. */
   struct cell_struct *left; /* the smaller points in the coordinate number split_dim. */
   struct cell_struct *right; /* the larger points in the coordinate number split_dim. */
-  /* left AND right are NULL when this cell contains only one point
-     from the initial distribution. */
+  /* left AND right are NULL when this cell contains only one (unique)
+     point from the initial distribution. */
 };
 
 typedef struct cell_struct tree;
@@ -94,13 +98,10 @@ void free_density_tree(tree *t);
 void sample_density(size_t ndim, size_t npts, double **pts, tree *tree, 
                     uniform_random rng, void *rng_data, double *output_pt);
 
-/* Integrate a function over a rectangular region in parameter space.
-   The function is sampled at the given points, where it takes values
-   in the array fs. */
-double integrate_samples(size_t ndim, size_t npts, double **pts, 
-                         double *fs, tree *t);
+/* Returns the probability density that a call to sample_density with
+   npts number of points will return the point pt.  This probability
+   is (part) of the computation of the jump_probability in the
+   Metropolis-Hastings sampling algorithm for an MCMC.  */
+double jump_probability(size_t ndim, size_t npts, double *pt, tree *tree);
 
-/* Volume of a cell. */
-double tree_volume(tree *t);
-
-#endif /* __DENEST_H__ */
+#endif /* __INTERP_H__ */
