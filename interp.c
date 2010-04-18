@@ -24,11 +24,11 @@
 
 /* Compare functions should return -1 if obj1 < obj2, 0 if obj1 =
    obj2, and 1 if obj1 > obj2. */
-typedef int (compare)(void *obj1, void *obj2, void *data);
+typedef int (*compare)(void *obj1, void *obj2, void *data);
 
 /* Predicates return zero if obj does not satisfy the predicate, and 1
    if not. */
-typedef int (predicate)(void *obj, void *data);
+typedef int (*predicate)(void *obj, void *data);
 
 static void
 swap(void **objs, size_t i, size_t j) {
@@ -66,7 +66,7 @@ partition(size_t n, void **objs, predicate pred, void *pred_data) {
 }
 
 typedef struct {
-  compare *comp;
+  compare comp;
   void *comp_data;
   void *obj;
 } less_than_given_object_data;
@@ -127,7 +127,7 @@ find_nth(size_t n, size_t nth, void **objs, compare comp, void *comp_data) {
     ltdata.comp_data = comp_data;
     ltdata.obj = partition_obj;
 
-    nlt = partition(n, objs, (predicate *) less_than_given_object, &ltdata);
+    nlt = partition(n, objs, (predicate) less_than_given_object, &ltdata);
 
     if (nth < nlt) {
       return find_nth(nlt, nth, objs, comp, comp_data);
@@ -214,16 +214,16 @@ split_along_dimension(size_t ndim, size_t dim, double x, double *low, double *hi
 
 static size_t
 partition_pts(size_t n, size_t ndim, size_t dim, double **pts) {
-  double *median_pt = find_nth(n, n/2, (void **)pts, (compare *) compare_along_dim, &dim);
+  double *median_pt = find_nth(n, n/2, (void **)pts, (compare) compare_along_dim, &dim);
   one_d_data data;
   size_t nlt;
 
   data.dim = dim;
   data.x0 = median_pt[dim];
 
-  nlt = partition(n, (void **) pts, (predicate *) lt_one_d, &data);
+  nlt = partition(n, (void **) pts, (predicate) lt_one_d, &data);
   if (nlt == 0) {
-    nlt = partition(n, (void **) pts, (predicate *) gt_one_d, &data);
+    nlt = partition(n, (void **) pts, (predicate) gt_one_d, &data);
     nlt = n-nlt;
   }
 
@@ -311,26 +311,26 @@ in_bounds(size_t ndim, double *pt, double *low, double *high) {
 }
 
 static tree *
-find_cell(size_t ndim, double *pt, tree *tree) {
-  if (!in_bounds(ndim, pt, tree->lower_left, tree->upper_right)) {
+find_cell(size_t ndim, double *pt, tree *t) {
+  if (!in_bounds(ndim, pt, t->lower_left, t->upper_right)) {
     return NULL;
-  } else if (tree->left == NULL || tree->right == NULL) {
-    return tree;
-  } else {
-    tree *maybe_left = find_cell(ndim, pt, tree->left);
+  } else if (t->left == NULL || t->right == NULL) {
+    return t;
+  } else { 
+    tree *maybe_left = find_cell(ndim, pt, t->left);
     if (maybe_left != NULL) {
       return maybe_left;
     } else {
-      return find_cell(ndim, pt, tree->right);
+      return find_cell(ndim, pt, t->right);
     }
   }
 }
 
 void
-sample_density(size_t ndim, size_t npts, double **pts, tree *tree,
-               uniform_rng rng, void *rng_data, double *output_pt) {
+sample_density(size_t ndim, size_t npts, double **pts, tree *t,
+               uniform_random rng, void *rng_data, double *output_pt) {
   double *pt = pts[(size_t) (npts*rng(rng_data))];
-  tree *cell = find_cell(ndim, pt, tree);
+  tree *cell = find_cell(ndim, pt, t);
   size_t i;
 
   for (i = 0; i < ndim; i++) {
@@ -339,8 +339,8 @@ sample_density(size_t ndim, size_t npts, double **pts, tree *tree,
 }
 
 double 
-jump_probability(size_t ndim, size_t npts, double *pt, tree *tree) {
-  tree *cell = find_cell(ndim, pt, tree);
+jump_probability(size_t ndim, size_t npts, double *pt, tree *t) {
+  tree *cell = find_cell(ndim, pt, t);
   double vol = 1.0;
   size_t i;
 
