@@ -108,14 +108,28 @@ all_equal_pts(size_t n, size_t ndim, double **pts) {
   return 1;
 }
 
+static void *
+min_obj(size_t n, void **objs, compare comp, void *comp_data) {
+  void *min_obj = objs[0];
+  size_t i;
+  
+  for (i = 1; i < n; i++) {
+    if (comp(min_obj, objs[i], comp_data) > 0) {
+      min_obj = objs[i];
+    }
+  }
+
+  return min_obj;
+}
+
 /* Returns the nth obj in order according to the comparison function
    comp.  The array of objects is re-ordered during this operation
    (not sorted---the computation cost is O(n), not O(n*log(n))). */
 static void *
 find_nth(size_t n, size_t nth, void **objs, compare comp, void *comp_data) {
   assert(nth < n);
-  if (n == 1 && nth == 0) {
-    return objs[0];
+  if (nth == 0) {
+    return min_obj(n, objs, comp, comp_data);
   } else if (all_equal(n, objs, comp, comp_data)) {
     return objs[0];
   } else {
@@ -129,22 +143,24 @@ find_nth(size_t n, size_t nth, void **objs, compare comp, void *comp_data) {
 
     nlt = partition(n, objs, (predicate) less_than_given_object, &ltdata);
 
+    assert(nlt < n);
+
     if (nth < nlt) {
       return find_nth(nlt, nth, objs, comp, comp_data);
     } else {
-      return find_nth(n-nlt, nth-nlt, objs, comp, comp_data);
+      return find_nth(n-nlt, nth-nlt, objs+nlt, comp, comp_data);
     }
   }
 }
 
-void free_density_tree(tree *t) {
+void free_interp_tree(tree *t) {
   if (t == NULL) {
     return;
   } else {
     free(t->lower_left);
     free(t->upper_right);
-    free_density_tree(t->left);
-    free_density_tree(t->right);
+    free_interp_tree(t->left);
+    free_interp_tree(t->right);
     free(t);
     return;
   }
@@ -231,7 +247,7 @@ partition_pts(size_t n, size_t ndim, size_t dim, double **pts) {
 }
 
 static tree *
-internal_make_density_tree(size_t ndim, size_t npts, double **pts, double *lower_left,
+internal_make_interp_tree(size_t ndim, size_t npts, double **pts, double *lower_left,
                            double *upper_right) {
   double *ll, *ur;
   tree *result;
@@ -274,8 +290,8 @@ internal_make_density_tree(size_t ndim, size_t npts, double **pts, double *lower
     result->npts = npts;
     result->lower_left = ll;
     result->upper_right = ur;
-    result->left = make_density_tree(ndim, nlt, pts, ll, new_ur);
-    result->right = make_density_tree(ndim, npts-nlt, pts+nlt, new_ll, ur);
+    result->left = make_interp_tree(ndim, nlt, pts, ll, new_ur);
+    result->right = make_interp_tree(ndim, npts-nlt, pts+nlt, new_ll, ur);
 
     free(new_ll);
     free(new_ur);
@@ -285,14 +301,14 @@ internal_make_density_tree(size_t ndim, size_t npts, double **pts, double *lower
 }
 
 tree *
-make_density_tree(size_t ndim, size_t npts, double **input_pts, double *ll, double *ur) {
+make_interp_tree(size_t ndim, size_t npts, double **input_pts, double *ll, double *ur) {
   double **pts = malloc(npts*sizeof(double*));
   tree *result;
   assert(pts != 0);
 
   memcpy(pts, input_pts, npts*sizeof(double *));
 
-  result = internal_make_density_tree(ndim, npts, pts, ll, ur);
+  result = internal_make_interp_tree(ndim, npts, pts, ll, ur);
 
   free(pts);
 

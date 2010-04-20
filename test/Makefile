@@ -15,15 +15,17 @@ CDEBUGFLAGS = -ggdb
 
 TEST_OBJS = test_gaussian.o
 
+UTILITY_OBJS = randomize.o stats.o
+
 CFLAGS = $(COPTFLAGS) $(CDEBUGFLAGS) -I$(GSL_INC_DIR)
 
 LDFLAGS = -L$(GSL_LIB_DIR)
 
 LDLIBS = $(GSL_LIBS)
 
-all-tests: ../interp.o $(TEST_OBJS)
+all-tests: ../interp.o $(UTILITY_OBJS) $(TEST_OBJS)
 
-%.o: ../interp.h
+%.o: ../interp.h utility.h
 
 .PHONY: clean
 clean:

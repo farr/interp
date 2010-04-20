@@ -20,7 +20,7 @@ int main() {
     i++;
   }
 
-  printf("%ld failed out of %ld run\n", nfail, i);
+  printf("%ld failed, %ld succeeded out of %ld run\n", nfail, i-nfail, i);
 
   return nfail;
 }

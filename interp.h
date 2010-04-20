@@ -83,11 +83,11 @@ typedef double (*uniform_random)(void *data);
    The procedure will make its own copies of the lower_left and
    upper_right arrays, so these may be freed or altered upon return
    arbitrarily.  Similarly with the pts array. */
-tree *make_density_tree(size_t ndim, size_t npts, double **pts, double *lower_left, 
+tree *make_interp_tree(size_t ndim, size_t npts, double **pts, double *lower_left, 
                         double *upper_right);
 
 /* Free the memory associated with the tree t. */
-void free_density_tree(tree *t);
+void free_interp_tree(tree *t);
 
 /* Draw a sample from the piecewise-constant interpolation of a
    distribution sampled by the npts points (each of dimension ndim) in
