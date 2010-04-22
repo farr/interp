@@ -80,6 +80,9 @@ int test_gaussian () {
   double low[ndim], high[ndim];
   tree *tr;
   double mu[ndim], std[ndim];
+  int status = 1; /* Success unless proved otherwise. */
+
+  printf("  Testing gaussian PDF interpolation... ");
 
   for (i = 0; i < ndim; i++) {
     low[i] = -10.0;
@@ -92,16 +95,6 @@ int test_gaussian () {
 
   col_mean_std(samples, nsamples, ndim, mu, std);
 
-  printf("Sample Means: ");
-  for (i = 0; i < ndim; i++) {
-    printf("%g ", mu[i]);
-  }
-  printf("\nSample Stds: ");
-  for (i = 0; i < ndim; i++) {
-    printf("%g ", std[i]);
-  }
-  printf("\n");
-
   tr = make_interp_tree(ndim, nsamples, samples, low, high);
 
   interp_samples = alloc_matrix(nsamples, ndim);
@@ -112,20 +105,21 @@ int test_gaussian () {
 
   col_mean_std(interp_samples, nsamples, ndim, mu, std);
 
-  printf("Interp Means: ");
-  for (i = 0; i < ndim; i++) {
-    printf("%g ", mu[i]);
-  }
-  printf("\nInterp Stds: ");
-  for (i = 0; i < ndim; i++) {
-    printf("%g ", std[i]);
-  }
-  printf("\n");
+  if (fabs(mu[0]) > 1e-2) status = 0;
+  if (fabs(mu[1]) > 1e-2) status = 0;
+  if (fabs(std[0] - 1.0) > 1e-2) status = 0;
+  if (fabs(std[1] - 1.0) > 1e-2) status = 0;
 
   gsl_rng_free(rng);
   fclose(out);
   free_matrix(samples, nsamples, ndim);
   free_matrix(interp_samples, nsamples, ndim);
 
-  return 1;  
+  if (status != 0) {
+    printf("PASSED\n");
+  } else {
+    printf("FAILED\n");
+  }
+
+  return status;  
 }

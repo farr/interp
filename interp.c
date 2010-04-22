@@ -19,78 +19,9 @@
 #include<assert.h>
 #include<stdlib.h>
 #include<string.h>
+#include<stdio.h>
 
 /* Utility functions and typedefs for manipulating arrays of objects. */
-
-/* Compare functions should return -1 if obj1 < obj2, 0 if obj1 =
-   obj2, and 1 if obj1 > obj2. */
-typedef int (*compare)(void *obj1, void *obj2, void *data);
-
-/* Predicates return zero if obj does not satisfy the predicate, and 1
-   if not. */
-typedef int (*predicate)(void *obj, void *data);
-
-static void
-swap(void **objs, size_t i, size_t j) {
-  void *tmp = objs[i];
-
-  objs[i] = objs[j];
-  objs[j] = tmp;
-}
-
-/* Returns nsat, the number of objets that satisfy pred in the array
-   of objects.  These objects are moved to the front of the array, so
-   objs[0] through objs[nsat-1] satisfy the predicate; objs[nsat]
-   through objs[n-1] do not satisfy the predicate. */
-static size_t
-partition(size_t n, void **objs, predicate pred, void *pred_data) {
-  size_t lowest_false = 0, highest_true = n-1;
-
-  while (1) {
-    while (pred(objs[lowest_false], pred_data)) {
-      lowest_false++;
-    }
-    
-    while (!(pred(objs[highest_true], pred_data))) {
-      highest_true--;
-    }
-
-    if (lowest_false < highest_true) {
-      swap(objs, lowest_false, highest_true);
-    } else {
-      break;
-    }
-  }
-
-  return lowest_false;  
-}
-
-typedef struct {
-  compare comp;
-  void *comp_data;
-  void *obj;
-} less_than_given_object_data;
-
-static int
-less_than_given_object(void *obj, less_than_given_object_data *data) {
-  int c = data->comp(obj, data->obj, data->comp_data);
-
-  return (c < 0);
-}
-
-static int
-all_equal(size_t n, void **objs, compare comp, void *comp_data) {
-  size_t i;
-  void *obj0 = objs[0];
-
-  for (i = 1; i < n; i++) {
-    if (comp(obj0, objs[i], comp_data) != 0) {
-      return 0;
-    }
-  }
-
-  return 1;
-}
 
 static int
 all_equal_pts(size_t n, size_t ndim, double **pts) {
@@ -108,51 +39,6 @@ all_equal_pts(size_t n, size_t ndim, double **pts) {
   return 1;
 }
 
-static void *
-min_obj(size_t n, void **objs, compare comp, void *comp_data) {
-  void *min_obj = objs[0];
-  size_t i;
-  
-  for (i = 1; i < n; i++) {
-    if (comp(min_obj, objs[i], comp_data) > 0) {
-      min_obj = objs[i];
-    }
-  }
-
-  return min_obj;
-}
-
-/* Returns the nth obj in order according to the comparison function
-   comp.  The array of objects is re-ordered during this operation
-   (not sorted---the computation cost is O(n), not O(n*log(n))). */
-static void *
-find_nth(size_t n, size_t nth, void **objs, compare comp, void *comp_data) {
-  assert(nth < n);
-  if (nth == 0) {
-    return min_obj(n, objs, comp, comp_data);
-  } else if (all_equal(n, objs, comp, comp_data)) {
-    return objs[0];
-  } else {
-    void *partition_obj = objs[rand() % n]; /* Probably *very* not random, but good enough. */
-    less_than_given_object_data ltdata;
-    size_t nlt;
-
-    ltdata.comp = comp;
-    ltdata.comp_data = comp_data;
-    ltdata.obj = partition_obj;
-
-    nlt = partition(n, objs, (predicate) less_than_given_object, &ltdata);
-
-    assert(nlt < n);
-
-    if (nth < nlt) {
-      return find_nth(nlt, nth, objs, comp, comp_data);
-    } else {
-      return find_nth(n-nlt, nth-nlt, objs+nlt, comp, comp_data);
-    }
-  }
-}
-
 void free_interp_tree(tree *t) {
   if (t == NULL) {
     return;
@@ -163,34 +49,6 @@ void free_interp_tree(tree *t) {
     free_interp_tree(t->right);
     free(t);
     return;
-  }
-}
-
-typedef struct {
-  size_t dim;
-  double x0;
-} one_d_data;
-
-static int 
-lt_one_d(double *pt, one_d_data *data) {
-  return pt[data->dim] < data->x0;
-}
-
-static int 
-gt_one_d(double *pt, one_d_data *data) {
-  return pt[data->dim] > data->x0;
-}
-
-static int
-compare_along_dim(double *pt1, double *pt2, size_t *d) {
-  size_t dim = *d;
-
-  if (pt1[dim] < pt2[dim]) {
-    return -1;
-  } else if (pt1[dim] > pt2[dim]) {
-    return 1;
-  } else {
-    return 0;
   }
 }
 
@@ -228,22 +86,57 @@ split_along_dimension(size_t ndim, size_t dim, double x, double *low, double *hi
   new_high[dim] = x;
 }
 
-static size_t
-partition_pts(size_t n, size_t ndim, size_t dim, double **pts) {
-  double *median_pt = find_nth(n, n/2, (void **)pts, (compare) compare_along_dim, &dim);
-  one_d_data data;
-  size_t nlt;
+static int
+compare_on_dimension(size_t *dim, const double **pt1, const double **pt2) {
+  const double *p1 = *pt1;
+  const double *p2 = *pt2;
+  size_t comp_dim = *dim;
 
-  data.dim = dim;
-  data.x0 = median_pt[dim];
+  if (p1[comp_dim] == p2[comp_dim]) {
+    return 0;
+  } else if (p1[comp_dim] < p2[comp_dim]) {
+    return -1;
+  } else {
+    return 1;
+  }
+}
 
-  nlt = partition(n, (void **) pts, (predicate) lt_one_d, &data);
-  if (nlt == 0) {
-    nlt = partition(n, (void **) pts, (predicate) gt_one_d, &data);
-    nlt = n-nlt;
+static double 
+find_split_point(size_t ndim, size_t npts, double **pts, size_t dim) {
+  size_t imid = npts/2;
+  size_t step;
+  size_t i;
+
+  qsort_r(pts, npts, sizeof(double *), &dim, (int (*)(const void *, const void *))compare_on_dimension);
+
+  for (i = 0; i < npts-1; i++) {
+    assert(pts[i][dim] <= pts[i+1][dim]);
   }
 
-  return nlt;
+  for (step = 1; step <= imid || imid + step < npts; step++) {
+    if (step <= imid) {
+      if (pts[imid][dim] != pts[imid-step][dim]) {
+        return 0.5*(pts[imid][dim] + pts[imid-step][dim]);
+      }
+    }
+
+    if (imid + step < npts) {
+      if (pts[imid][dim] != pts[imid+step][dim]) {
+        return 0.5*(pts[imid][dim] + pts[imid+step][dim]);
+      }
+    }
+  }
+
+  assert(0);
+}
+
+static size_t
+index_of_split(size_t ndim, size_t npts, double **pts, size_t dim, double x) {
+  size_t ind = 0;
+
+  while (pts[ind][dim] < x) ind++;
+  
+  return ind;
 }
 
 static tree *
@@ -276,8 +169,8 @@ internal_make_interp_tree(size_t ndim, size_t npts, double **pts, double *lower_
     return result;
   } else {
     size_t dim = widest_dimension(npts, ndim, pts);
-    size_t nlt = partition_pts(npts, ndim, dim, pts);
-    double x = 0.5*(pts[nlt-1][dim] + pts[nlt][dim]);
+    double x = find_split_point(ndim, npts, pts, dim);
+    size_t spind = index_of_split(ndim, npts, pts, dim, x);
     double *new_ll = malloc(ndim*sizeof(double));
     double *new_ur = malloc(ndim*sizeof(double));
     
@@ -290,8 +183,8 @@ internal_make_interp_tree(size_t ndim, size_t npts, double **pts, double *lower_
     result->npts = npts;
     result->lower_left = ll;
     result->upper_right = ur;
-    result->left = make_interp_tree(ndim, nlt, pts, ll, new_ur);
-    result->right = make_interp_tree(ndim, npts-nlt, pts+nlt, new_ll, ur);
+    result->left = make_interp_tree(ndim, spind, pts, ll, new_ur);
+    result->right = make_interp_tree(ndim, npts-spind, pts+spind, new_ll, ur);
 
     free(new_ll);
     free(new_ur);
