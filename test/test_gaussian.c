@@ -25,32 +25,6 @@ gaussian_sample(gsl_rng *rng, double x) {
 }
 
 static double **
-alloc_matrix(size_t nrow, size_t ncol) {
-  double **result = malloc(nrow*sizeof(double *));
-  size_t i;
-  
-  assert(result != 0);
-
-  for (i = 0; i < nrow; i++) {
-    result[i] = malloc(ncol*sizeof(double));
-    assert(result[i] != 0);
-  }
-
-  return result;
-}
-
-static void
-free_matrix(double **mat, size_t nrow, size_t ncol) {
-  size_t i;
-
-  for (i = 0; i < nrow; i++) {
-    free(mat[i]);
-  }
-
-  free(mat);
-}
-
-static double **
 alloc_gaussian_samples(gsl_rng *rng, size_t n, size_t ndim) {
   double **result = alloc_matrix(n, ndim);
   size_t i;
@@ -81,6 +55,9 @@ int test_gaussian () {
   tree *tr;
   double mu[ndim], std[ndim];
   int status = 1; /* Success unless proved otherwise. */
+  FILE *gaussian_out = fopen("gaussian_interp.dat", "w");
+
+  assert(gaussian_out != 0);
 
   printf("  Testing gaussian PDF interpolation... ");
 
@@ -105,10 +82,16 @@ int test_gaussian () {
 
   col_mean_std(interp_samples, nsamples, ndim, mu, std);
 
-  if (fabs(mu[0]) > 1e-2) status = 0;
-  if (fabs(mu[1]) > 1e-2) status = 0;
-  if (fabs(std[0] - 1.0) > 1e-2) status = 0;
-  if (fabs(std[1] - 1.0) > 1e-2) status = 0;
+  for (i = 0; i < nsamples; i++) {
+    fprintf(gaussian_out, "%g %g\n", interp_samples[i][0], interp_samples[i][1]);
+  }
+
+  fclose(gaussian_out);
+
+  if (fabs(mu[0]) > 5e-2) status = 0;
+  if (fabs(mu[1]) > 5e-2) status = 0;
+  if (fabs(std[0] - 1.0) > 5e-2) status = 0;
+  if (fabs(std[1] - 1.0) > 5e-2) status = 0;
 
   gsl_rng_free(rng);
   fclose(out);

@@ -15,7 +15,7 @@ CDEBUGFLAGS = -ggdb
 
 TEST_OBJS = test_gaussian.o
 
-UTILITY_OBJS = randomize.o stats.o
+UTILITY_OBJS = memory.o randomize.o stats.o
 
 CFLAGS = $(COPTFLAGS) $(CDEBUGFLAGS) -I$(GSL_INC_DIR)
 

@@ -4,6 +4,13 @@
 #include<gsl/gsl_rng.h>
 #include<stdlib.h>
 
+/* Memory functions */
+double **
+alloc_matrix(size_t nrow, size_t ncol);
+
+void
+free_matrix(double **mat, size_t nrow, size_t ncol);
+
 /* Utility functions. */
 void
 randomize(gsl_rng *rng);
