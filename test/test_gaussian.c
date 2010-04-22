@@ -2,7 +2,7 @@
 #include"all-tests.h"
 #include<gsl/gsl_rng.h>
 #include<stdio.h>
-#include<math.h>
+#include<math.h>#
 #include<assert.h>
 
 static double **
@@ -39,6 +39,7 @@ int test_gaussian () {
   FILE *gaussian_out = fopen("gaussian_interp.dat", "w");
 
   assert(gaussian_out != 0);
+  assert(rng != 0);
 
   printf("  Testing gaussian PDF interpolation... ");
 
