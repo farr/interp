@@ -35,13 +35,11 @@ int test_gaussian () {
   double low[ndim], high[ndim];
   tree *tr;
   double mu[ndim], std[ndim];
-  int status = 1; /* Success unless proved otherwise. */
+  int status = 0; /* Success unless proved otherwise. */
   FILE *gaussian_out = fopen("gaussian_interp.dat", "w");
 
   assert(gaussian_out != 0);
   assert(rng != 0);
-
-  printf("  Testing gaussian PDF interpolation... ");
 
   for (i = 0; i < ndim; i++) {
     low[i] = -10.0;
@@ -70,21 +68,15 @@ int test_gaussian () {
 
   fclose(gaussian_out);
 
-  if (fabs(mu[0]) > 5e-2) status = 0;
-  if (fabs(mu[1]) > 5e-2) status = 0;
-  if (fabs(std[0] - 1.0) > 5e-2) status = 0;
-  if (fabs(std[1] - 1.0) > 5e-2) status = 0;
+  if (fabs(mu[0]) > 5e-2) status = 1;
+  if (fabs(mu[1]) > 5e-2) status = 2;
+  if (fabs(std[0] - 1.0) > 5e-2) status = 3;
+  if (fabs(std[1] - 1.0) > 5e-2) status = 4;
 
   gsl_rng_free(rng);
   fclose(out);
   free_matrix(samples, nsamples, ndim);
   free_matrix(interp_samples, nsamples, ndim);
-
-  if (status != 0) {
-    printf("PASSED\n");
-  } else {
-    printf("FAILED\n");
-  }
 
   return status;  
 }
