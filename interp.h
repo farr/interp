@@ -1,38 +1,3 @@
-/* interp: Density estimation from a discrete set of samples.  Written
-   3 Dec 2009 by Will M. Farr <w-farr@northwestern.edu>.  Modified
-   April 2010 by Will M. Farr <w-farr@northwestern.edu>.
-
-   Given a set of points in arbitrary dimension, this code subdivides
-   the domain of the points recursively into cells such that each cell
-   contains exactly one point (or many copies of the same point, such
-   as the repeated samples that might come out of an MCMC).  It does
-   this by cutting the domain along its longest dimension such that
-   (approximately) half the points lie in each of the two resulting
-   cells.
-
-   Note that the code assumes that the domain is topologically R^n; if
-   there are, e.g., angular coordinates that wrap then there will be
-   inaccuracies near the edges of the domain (0 and 2*pi) where points
-   that are actually close are regarded by the code to be
-   well-separated.  Beware!
-
-   Note also that the code does not try to scale any of the dimensions
-   of the domain; it is to your advantage to have all dimensions of
-   approximately the same magnitude, since the code will choose the
-   numerically largest dimension the partition at each subdivision.
-
-   To use this code to interpolate a PDF from a set of discrete
-   samples, provide your samples to the make_density_tree function.
-   Then use the sample_density function to draw output points
-   distributed according to a (constant-in-cell) interpolation of your
-   PDF.  This is done by first choosing (uniformly) a random sample
-   point, then finding the cell that contains only this sample point,
-   and finally drawing an output point uniformly in this cell.  This
-   corresponds to drawing from a piecewise-constant-in-cell
-   interpolation of the PDF represented by the sample points.
-
-*/
-
 /*  denest.h: Density estimation from discrete samples.  
     Copyright (C) 2009-2010 Will M. Farr <w-farr@northwestern.edu>
 
@@ -49,6 +14,63 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+/* interp: Density estimation from a discrete set of samples.  Written
+   Dec 2009 by Will M. Farr <w-farr@northwestern.edu>.  
+
+   Modified:
+   April 2010 by Will M. Farr <w-farr@northwestern.edu>.
+
+   Given a set of points in arbitrary dimension, this code subdivides
+   the domain of the points recursively into cells such that each cell
+   contains exactly one unique point (there may be many copies of the
+   same point, such as the repeated samples that might come out of an
+   MCMC).  It does this by cutting the domain along the dimension with
+   the largest spread of points such that (approximately) half the
+   points lie in each of the two resulting cells.
+
+   The code assumes that the domain is topologically R^n; if there
+   are, e.g., angular coordinates that wrap then there will be
+   inaccuracies near the edges of the domain (0 and 2*pi) where points
+   that are actually close are regarded by the code to be
+   well-separated.  Beware!
+
+   The code does not try to scale any of the dimensions of the domain;
+   it is to your advantage to have all dimensions of approximately the
+   same magnitude, since the code will choose the numerically largest
+   extent of points to partition at each subdivision.
+
+   To use this code to interpolate a PDF from a set of discrete
+   samples, provide your samples to the make_density_tree function.
+   Then use the sample_density function to draw output points
+   distributed according to a (constant-in-cell) interpolation of your
+   PDF.  This is done by first choosing (uniformly) a random sample
+   point, then finding the cell that contains only this sample point,
+   and finally drawing an output point uniformly in this cell.  This
+   corresponds to drawing from a piecewise-constant-in-cell
+   interpolation of the PDF represented by the sample points.
+
+   The jump_probability function is useful when using sample_density
+   in the context of an MCMC, where one needs to both propose random
+   jumps from the current point and compute the probability of
+   choosing the given jump.  Given a point (assumed to be drawn using
+   the sample_density function), jump_probability returns the
+   probability density that sample_density would return that point
+   from among all possible choices.  (NOTE: jump_probability returns
+   the actual jump probability, NOT the log of the jump probability.
+   Logs are often used in MCMC simulations to prevent under- and
+   over-flow of probabilities.)
+
+   The code makes use of the qsort_r function (which is a ?BSD?
+   extension to the C standard library qsort function).  It is
+   thread-safe, re-entrant, and all that jazz.  The time complexity of
+   constructing the tree is O(N*log(N)^2) (contrast with the minimum
+   time for construction of a kD tree, O(N*log(N))---the extra log(N)
+   factor comes from sorting the points to determine the split along
+   each dimension rather than using a faster, O(N), median-finding
+   algorithm).  The time complexity for proposing a jump and computing
+   the jump probability is O(log(N)).  
+
+*/
 
 #ifndef __INTERP_H__
 #define __INTERP_H__
