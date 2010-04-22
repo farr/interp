@@ -13,7 +13,7 @@ CDEBUGFLAGS = -ggdb
 #######################################
 # End config---stuff below shouldn't need to be changed.
 
-TEST_OBJS = test_gaussian.o
+TEST_OBJS = test_gaussian.o test_jump_proposal.o
 
 UTILITY_OBJS = gaussian.o memory.o randomize.o stats.o
 

@@ -35,5 +35,6 @@ log_gaussian(double x);
 
 /* All test functions. */
 int test_gaussian();
+int test_jump_proposal();
 
 #endif /* __ALL_TESTS_H__ */

@@ -10,13 +10,16 @@ typedef struct {
 } test_info;
 
 int main() {
-  const size_t ntests = 1;
+  const size_t ntests = 2;
   test_info tests[ntests];
   size_t i = 0;
   size_t nfail = 0;
 
   tests[0].t = test_gaussian;
   tests[0].name = "interpolate 2-D Gaussian PDF";
+
+  tests[1].t = test_jump_proposal;
+  tests[1].name = "jump proposal test";
 
   printf("Running tests...\n");
 
