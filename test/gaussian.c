@@ -1,5 +1,7 @@
 #include<math.h>
 #include<gsl/gsl_rng.h>
+#include"all-tests.h"
+#include<assert.h>
 
 double
 log_gaussian(double x) {

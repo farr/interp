@@ -107,7 +107,8 @@ find_split_point(size_t ndim, size_t npts, double **pts, size_t dim) {
   size_t step;
   size_t i;
 
-  qsort_r(pts, npts, sizeof(double *), &dim, (int (*)(const void *, const void *))compare_on_dimension);
+  qsort_r(pts, npts, sizeof(double *), &dim, 
+          (int (*)(void *, const void *, const void *))compare_on_dimension);
 
   for (i = 0; i < npts-1; i++) {
     assert(pts[i][dim] <= pts[i+1][dim]);
@@ -220,19 +221,25 @@ in_bounds(size_t ndim, double *pt, double *low, double *high) {
 }
 
 static tree *
-find_cell(size_t ndim, double *pt, tree *t) {
+do_find_cell(size_t ndim, double *pt, tree *t) {
   if (!in_bounds(ndim, pt, t->lower_left, t->upper_right)) {
     return NULL;
   } else if (t->left == NULL || t->right == NULL) {
     return t;
   } else { 
-    tree *maybe_left = find_cell(ndim, pt, t->left);
+    tree *maybe_left = do_find_cell(ndim, pt, t->left);
     if (maybe_left != NULL) {
       return maybe_left;
     } else {
-      return find_cell(ndim, pt, t->right);
+      return do_find_cell(ndim, pt, t->right);
     }
   }
+}
+
+static tree *
+find_cell(size_t ndim, double *pt, tree *t) {
+  assert(in_bounds(ndim, pt, t->lower_left, t->upper_right));
+  return do_find_cell(ndim, pt, t);
 }
 
 void
