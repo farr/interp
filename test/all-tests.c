@@ -33,13 +33,14 @@ int main() {
     if (status) {
       printf("FAILED (with code %d)\n", status);
       fflush(stdout);
+      nfail++;
     } else {
       printf("PASSED\n");
       fflush(stdout);
     }
   }
 
-  printf("%ld failed, %ld succeeded out of %ld run\n", nfail, i-nfail, i);
+  printf("%ld failed, %ld succeeded out of %ld run\n", nfail, ntests-nfail, ntests);
 
   return nfail;
 }
