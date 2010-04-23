@@ -25,8 +25,6 @@ LDLIBS = $(GSL_LIBS)
 
 all-tests: ../interp.o $(UTILITY_OBJS) $(TEST_OBJS)
 
-%.o: ../interp.h utility.h
-
 .PHONY: clean
 clean:
 	rm -f ../interp.o
