@@ -267,7 +267,9 @@ cell_volume(tree *t) {
 }
 
 double 
-jump_probability(size_t ndim, size_t npts, double *pt, tree *t) {
+jump_probability(double *pt, tree *t) {
+  size_t npts = t->npts;
+  size_t ndim = t->ndim;
   tree *cell = find_cell(ndim, pt, t);
   double vol = cell_volume(cell);
 
@@ -275,12 +277,12 @@ jump_probability(size_t ndim, size_t npts, double *pt, tree *t) {
 }
 
 double
-probability_density(size_t ndim, size_t npts, double *pt, tree *t) {
-  assert(t != 0);
+probability_density(double *pt, tree *t) {
+  size_t ndim = t->ndim;
 
   if (!in_bounds(ndim, pt, t->lower_left, t->upper_right)) {
     return 0.0;
   } else {
-    return jump_probability(ndim, npts, pt, t);
+    return jump_probability(pt, t);
   }
 }

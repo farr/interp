@@ -58,8 +58,8 @@ test_jump_proposal() {
     }
 
     log_accept = log_like - orig_log_like + 
-      log(jump_probability(ndim, nsamples, interp_samples[i], t)) - /* Jump prob backwards. */
-      log(jump_probability(ndim, nsamples, interp_samples[i+1], t)); /* Jump prob forwards. */
+      log(jump_probability(interp_samples[i], t)) - /* Jump prob backwards. */
+      log(jump_probability(interp_samples[i+1], t)); /* Jump prob forwards. */
 
     if (log(gsl_rng_uniform(rng)) < log_accept) {
       /* Do nothing. */

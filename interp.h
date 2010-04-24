@@ -124,10 +124,10 @@ void sample_density(size_t ndim, size_t npts, double **pts, tree *tree,
    npts number of points will return the point pt.  This probability
    is (part) of the computation of the jump_probability in the
    Metropolis-Hastings sampling algorithm for an MCMC.  */
-double jump_probability(size_t ndim, size_t npts, double *pt, tree *tree);
+double jump_probability(double *pt, tree *tree);
 
 /* Returns the value of the piecewise-constant PDF in tree at the
    point pt. */
-double probability_density(size_t ndim, size_t npts, double *pt, tree *tree);
+double probability_density(double *pt, tree *tree);
 
 #endif /* __INTERP_H__ */
