@@ -286,3 +286,20 @@ probability_density(double *pt, tree *t) {
     return jump_probability(pt, t);
   }
 }
+
+void
+bounds_of_points(size_t ndim, size_t npts, double **pts, 
+                 double *lower_left, double *upper_right) {
+  size_t i;
+
+  memcpy(lower_left, pts[0], ndim*sizeof(double));
+  memcpy(upper_right, pts[0], ndim*sizeof(double));
+
+  for (i = 1; i < npts; i++) {
+    size_t j;
+    for (j = 0; j < ndim; j++) {
+      if (lower_left[j] > pts[i][j]) lower_left[j] = pts[i][j];
+      if (upper_right[j] < pts[i][j]) upper_right[j] = pts[i][j];
+    }
+  }
+}

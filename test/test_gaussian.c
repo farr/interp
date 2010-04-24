@@ -41,14 +41,11 @@ int test_gaussian () {
   assert(gaussian_out != 0);
   assert(rng != 0);
 
-  for (i = 0; i < ndim; i++) {
-    low[i] = -10.0;
-    high[i] = 10.0;
-  }
-
   randomize(rng);
 
   samples = alloc_gaussian_samples(rng, nsamples, ndim);
+
+  bounds_of_points(ndim, nsamples, samples, low, high);
 
   col_mean_std(samples, nsamples, ndim, mu, std);
 

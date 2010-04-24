@@ -98,9 +98,10 @@ typedef struct cell_struct tree;
 typedef double (*uniform_random)(void *data);
 
 /* Construct a density tree from the npts points stored in pts; each
-   point is an array of ndim double precision numbers.  The total
-   boundary of the domain is a box in R^n bounded below by lower_left,
-   and above by upper_right. 
+   point is an array of ndim double precision numbers (i.e. the pts
+   array is in C-order: pts[0] is the first point, and pts[npts-1] is
+   the last).  The total boundary of the domain is a box in R^n
+   bounded below by lower_left, and above by upper_right.
 
    The procedure will make its own copies of the lower_left and
    upper_right arrays, so these may be freed or altered upon return
@@ -129,5 +130,13 @@ double jump_probability(double *pt, tree *tree);
 /* Returns the value of the piecewise-constant PDF in tree at the
    point pt. */
 double probability_density(double *pt, tree *tree);
+
+/* Utility function to determine the cubical bounds that enclose all
+   the given points.  Fills in lower_left and upper_right such that
+   they enclose all the given points; after calling bounds_of_points,
+   lower_left and upper_right are suitable arguments for
+   make_interp_tree. */
+void bounds_of_points(size_t ndim, size_t npts, double **pts, 
+                      double *lower_left, double *upper_right);
 
 #endif /* __INTERP_H__ */

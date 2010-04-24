@@ -10,8 +10,8 @@ int
 test_jump_proposal() {
   const size_t nsamples = 1000000;
   const size_t ndim = 2;
-  double low[] = {-10.0, -10.0};
-  double high[] = {10.0, 10.0};
+  double low[ndim];
+  double high[ndim];
   gsl_rng *rng = gsl_rng_alloc(gsl_rng_ranlxd2);
   double **samples = alloc_matrix(nsamples, ndim);
   double **interp_samples = alloc_matrix(nsamples, ndim);
@@ -37,6 +37,8 @@ test_jump_proposal() {
       samples[i+1][j] = gaussian_sample(rng, samples[i][j]);
     }
   }
+
+  bounds_of_points(ndim, nsamples, samples, low, high);
 
   t = make_interp_tree(ndim, nsamples, samples, low, high);
   assert(t != 0);
