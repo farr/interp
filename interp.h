@@ -1,4 +1,4 @@
-/*  denest.h: Density estimation from discrete samples.  
+/*  interp.h: Density estimation from discrete samples.  
     Copyright (C) 2009-2010 Will M. Farr <w-farr@northwestern.edu>
 
     This program is free software: you can redistribute it and/or modify
