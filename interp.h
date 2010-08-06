@@ -121,10 +121,10 @@ void free_interp_tree(tree *t);
 void sample_density(size_t ndim, size_t npts, double **pts, tree *tree, 
                     uniform_random rng, void *rng_data, double *output_pt);
 
-/* Returns the probability density that a call to sample_density with
-   npts number of points will return the point pt.  This probability
-   is (part) of the computation of the jump_probability in the
-   Metropolis-Hastings sampling algorithm for an MCMC.  */
+/* Returns the probability density that a call to sample_density will
+   return the point pt.  This probability is (part) of the computation
+   of the jump_probability in the Metropolis-Hastings sampling
+   algorithm for an MCMC.  */
 double jump_probability(double *pt, tree *tree);
 
 /* Returns the value of the piecewise-constant PDF in tree at the
